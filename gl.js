@@ -81,13 +81,11 @@ function onMouseMove(e)
 
 function onMouseDown()
 {
-    console.log("Mouse Enable");
     mouseEnable = true;
 }
 
 function onMouseUp()
 {
-    console.log("Mouse Disable");
     mouseEnable = false;
 }
 

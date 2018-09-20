@@ -26,13 +26,13 @@
         window.webGLResourcesLoaded = function()
         {
             console.log("Load shader resources success.");
-            initShaderPrograms(gl);
-            initSim();
+            InitShaderPrograms(gl);
+            InitSim();
             var T = setInterval(
                 function()
                 {
                     // Create WebGL canvas
-                    render();
+                    Render();
                 }
             );
         }

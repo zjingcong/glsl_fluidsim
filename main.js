@@ -5,12 +5,13 @@ var RENDER_HEIGHT;
 var WIDTH = 400;
 var HEIGHT = 400;
 
-var dx = 1.2;
-var dy = 1.2;
-var dt = 0.5;
-var jacobi_iter = 10;
+var dx = 2.2;
+var dy = 2.2;
+var dt = 1.0;
+var jacobi_iter = 6;
 
-function initShaderPrograms()
+
+function InitShaderPrograms()
 {
     shaderManager = ShaderManager();
 
@@ -19,6 +20,10 @@ function initShaderPrograms()
     shaderManager.setUniformForProgram("baseColor", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
     // init velocity
     shaderManager.loadShaderFromSource(gl, "initVel");
+    // boundary condition
+    shaderManager.loadShaderFromSource(gl, "boundary");
+    shaderManager.setUniformForProgram("boundary", "u_resolution", [WIDTH, HEIGHT], "2f");
+    shaderManager.setUniformForProgram("boundary", "u_mat", 0, "1i");
     // advect color
     shaderManager.loadShaderFromSource(gl, "advectColor");
     shaderManager.setUniformForProgram("advectColor", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
@@ -86,21 +91,25 @@ function initShaderPrograms()
     shaderManager.initFrameBufferForTexture("nextPressure", true);
 }
 
-function initSim()
+function InitSim()
 {
     gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+
+    shaderManager.renderToBuffer("render", ["test"]);
     console.log("Init Simulation");
     shaderManager.renderToBuffer("baseColor", [], "color");
     gl.viewport(0, 0, WIDTH, HEIGHT);
     shaderManager.renderToBuffer("initVel", [], "velocity");
 }
 
-function render()
+function Render()
 {
     gl.viewport(0, 0, WIDTH, HEIGHT);
     // advect velocity
     shaderManager.renderToBuffer("advectVelocity", ["velocity"], "nextVelocity");
-    shaderManager.swapBuffer("velocity", "nextVelocity");
+    // solve velocity boundary
+    shaderManager.setUniformForProgram("boundary", "u_scale", -1.0, "1f");
+    shaderManager.renderToBuffer("boundary", ["nextVelocity"], "velocity");
 
     // add force
     if (mouseEnable == true)
@@ -109,25 +118,29 @@ function render()
         // console.log("Mouse location: " + mouseCoordinates[0] + ", " + mouseCoordinates[1]);
         shaderManager.setUniformForProgram("addForce", "u_mouseDir", mouseDir, "2f");
         shaderManager.setUniformForProgram("addForce", "u_mouseLoc", mouseCoordinates, "2f");
-        shaderManager.setUniformForProgram("addForce", "u_r", 0.002, "1f");
+        shaderManager.setUniformForProgram("addForce", "u_r", 0.0005, "1f");
         shaderManager.renderToBuffer("addForce", ["velocity"], "nextVelocity");
-        shaderManager.swapBuffer("velocity", "nextVelocity");
+        // solve velocity boundary
+        shaderManager.setUniformForProgram("boundary", "u_scale", -1.0, "1f");
+        shaderManager.renderToBuffer("boundary", ["nextVelocity"], "velocity");
     }
-
-    // console.log("run");
-    // shaderManager.renderToBuffer("render", ["velocity"]);
 
     // compute pressure
     shaderManager.renderToBuffer("divergence", ["velocity"], "divergence");
     for (var i = 0; i < jacobi_iter; ++i)
     {
         shaderManager.renderToBuffer("jacobi", ["pressure", "divergence"], "nextPressure");
-        shaderManager.swapBuffer("pressure", "nextPressure");
+        // solve pressure boundary
+        shaderManager.setUniformForProgram("boundary", "u_scale", 1.0, "1f");
+        shaderManager.renderToBuffer("boundary", ["nextPressure"], "pressure");
     }
 
     // subtract pressure gradient
     shaderManager.renderToBuffer("velFromPressure", ["pressure", "velocity"], "nextVelocity");
-    shaderManager.swapBuffer("velocity", "nextVelocity");
+    // solve velocity boundary
+    shaderManager.setUniformForProgram("boundary", "u_scale", -1.0, "1f");
+    shaderManager.renderToBuffer("boundary", ["nextVelocity"], "velocity");
+    // shaderManager.swapBuffer("velocity", "nextVelocity");
 
     // advect color
     gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
