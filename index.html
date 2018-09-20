@@ -28,17 +28,20 @@
             console.log("Load shader resources success.");
             initShaderPrograms(gl);
             initSim();
-            var T = setInterval(function() {
-                // Create WebGL canvas
-                render();
-            });
+            var T = setInterval(
+                function()
+                {
+                    // Create WebGL canvas
+                    render();
+                }
+            );
         }
 
 
     </script>
 </head>
 
-<body style = "background: #202020; padding: 32px;">
-<canvas id = "gl" width = "600" height = "600"></canvas>
+<body style = "background: #202020; padding: 0;">
+<canvas id = "gl" width = "800" height = "800"></canvas>
 </body>
 </html>

@@ -9,6 +9,7 @@ var shaders = [
     "baseColor",
     "initVel",
     "advectVelocity",
+    "addForce",
     "divergence",
     "jacobi",
     "velFromPressure",
@@ -186,9 +187,9 @@ function ShaderManager() {
         gl.useProgram(this.programs[programName].program);
         gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffers[outputTexture]);
 
-        // gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        // // Enable color; required for clearing the screen
-        // gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        // Enable color; required for clearing the screen
+        gl.clear(gl.COLOR_BUFFER_BIT);
 
         for (var i=0;i<inputTextures.length;i++){
             gl.activeTexture(gl.TEXTURE0 + i);

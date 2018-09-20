@@ -1,29 +1,21 @@
-/*
-    CC3.0 Distribution License
-    NOTE: This software is released under CC3.0 creative commons
-    If using in own projects please give credit to the original author,
-    * By linking to my tutorial site:
-    * http://www.webgltutorials.org
-    * Thanks :-)
-*/
+
+// reference: http://www.webgltutorials.org
+
+var lastMouseCoordinates =  [0, 0];
+var mouseCoordinates =  [0, 0];
+var mouseEnable = false;
 
 // Get WebGL context, if standard is not available; fall back on alternatives
 function GetWebGLContext( canvas )
 {
     // Standard
     return canvas.getContext("webgl") ||
-
         // Alternative; Safari, others
         canvas.getContext("experimental-webgl") ||
-
         // Firefox; mozilla
         canvas.getContext("moz-webgl") ||
-
         // Last resort; Safari, and maybe others
         canvas.getContext("webkit-3d");
-
-    // Note that "webgl" is not available as of Safari version <= 7.0.3
-    // So we have to fall back to ambiguous alternatives for it and some other browsers
 }
 
 function InitializeWebGL()
@@ -46,8 +38,15 @@ function InitializeWebGL()
             console.log("WebGL is initialized.");
 
             // Ensure OpenGL viewport is resized to match canvas dimensions
-            gl.viewportWidth = 800;//canvas.width;
-            gl.viewportHeight = 600;//canvas.height;
+            RENDER_WIDTH = canvas.width;
+            RENDER_HEIGHT = canvas.height;
+
+            canvas.onmousemove = onMouseMove;
+            canvas.onmousedown = onMouseDown;
+            canvas.onmouseup = onMouseUp;
+
+            gl.viewportWidth = RENDER_WIDTH;
+            gl.viewportHeight = RENDER_HEIGHT;
 
             // Output the WebGL rendering context object to console for reference
             console.log( gl );
@@ -65,11 +64,34 @@ function InitializeWebGL()
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 
             return gl;
-
         }
         else
             console.log("Your browser doesn't support WebGL.");
     }
     else
         console.log("WebGL is supported, but disabled :-(");
+}
+
+// events callback
+function onMouseMove(e)
+{
+    lastMouseCoordinates = mouseCoordinates;
+    mouseCoordinates = [e.clientX, RENDER_HEIGHT-e.clientY];
+}
+
+function onMouseDown()
+{
+    console.log("Mouse Enable");
+    mouseEnable = true;
+}
+
+function onMouseUp()
+{
+    console.log("Mouse Disable");
+    mouseEnable = false;
+}
+
+function calculateMouseDir()
+{
+    return [mouseCoordinates[0] - lastMouseCoordinates[0], mouseCoordinates[1] - lastMouseCoordinates[1]];
 }
