@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fluid Dynamics</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script src = 'gl.js'></script>
+    <script src = 'gl_boilerplate.js'></script>
+    <script src = 'shaders.js'></script>
+    <script src = 'main.js'></script>
+
+    <script type = "text/javascript">
+        /* -- Gl functions -- */
+        var gl = null;
+
+        window.onload = function()
+        {
+            gl = InitializeWebGL();
+
+            if (!gl)
+                console.log('Failed to set up WebGL.');
+            else
+                console.log("Loading shader resources...");
+                LoadShaderSource();
+        };
+
+        window.webGLResourcesLoaded = function()
+        {
+            console.log("Load shader resources success.");
+            initShaderPrograms(gl);
+            initSim();
+            var T = setInterval(function() {
+                // Create WebGL canvas
+                render();
+            });
+        }
+
+
+    </script>
+</head>
+
+<body style = "background: #202020; padding: 32px;">
+<canvas id = "gl" width = "600" height = "600"></canvas>
+</body>
+</html>
