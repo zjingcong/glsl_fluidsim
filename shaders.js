@@ -7,10 +7,11 @@ Reference:
 
 var shaders = [
     "flip",
+    "addColor",
     "baseColor",
+    "baseColor2",
     "initVel",
     "boundary",
-    "advectVelocity",
     "addForce",
     "divergence",
     "jacobi",
@@ -84,7 +85,7 @@ function LoadShaderSourceFromFile(shaderName, filenameVertexShader, filenameFrag
 function LoadImages()
 {
     console.log("Load textures...");
-    var texturefile = "resources/egg.png";
+    var texturefile = "resources/panda.png";
     // load textures
     LoadImageFromFile("initColor", texturefile);
 }

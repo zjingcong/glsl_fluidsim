@@ -8,7 +8,7 @@ void main()
     vec2 fragCoord = gl_FragCoord.xy;
     vec2 st = fragCoord/u_resolution;
     st.y = 1.0 - st.y;
-    vec4 color = texture2D(u_color, st) * 2.0;
+    vec4 color = texture2D(u_color, st);
 
     gl_FragColor = color;
 }
