@@ -2,13 +2,15 @@
 var shaderManager;
 var RENDER_WIDTH;
 var RENDER_HEIGHT;
-var WIDTH = 400;
-var HEIGHT = 400;
+var WIDTH = 300;
+var HEIGHT = 300;
 
 var dx = 1.0;
 var dy = 1.0;
 var dt = 1.0;
 var jacobi_iter = 6;
+
+var addColorEnable = false;
 
 function InitShaderPrograms()
 {
@@ -22,6 +24,7 @@ function InitShaderPrograms()
     shaderManager.loadShaderFromSource(gl, "baseColor");
     shaderManager.setUniformForProgram("baseColor", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
     shaderManager.loadShaderFromSource(gl, "baseColor2");
+    shaderManager.setUniformForProgram("baseColor2", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
     // color src
     shaderManager.loadShaderFromSource(gl, "addColor");
     shaderManager.setUniformForProgram("addColor", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
@@ -97,17 +100,23 @@ function InitShaderPrograms()
     shaderManager.initFrameBufferForTexture("nextPressure", true);
 
     // create textures
-    shaderManager.initTextureFromImage("initColor");
+    shaderManager.initTextureFromImage("bird");
+    shaderManager.initTextureFromImage("egg");
 }
 
 function InitSim()
 {
     console.log("Init Simulation");
     gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
-    // shaderManager.renderToBuffer("flip", ["initColor"], "color");
-    shaderManager.renderToBuffer("baseColor2", [], "tmpColor");
-    // shaderManager.renderToBuffer("flip", ["initColor"], "tmpColor");
-    shaderManager.renderToBuffer("baseColor", [], "color");
+
+    addColorEnable = true;
+    shaderManager.renderToBuffer("baseColor2", [], "color");
+    shaderManager.renderToBuffer("flip", ["egg"], "tmpColor");
+
+    // addColorEnable = false;
+    // shaderManager.renderToBuffer("baseColor2", [], "tmpColor");
+    // shaderManager.renderToBuffer("flip", ["egg"], "color");
+
     gl.viewport(0, 0, WIDTH, HEIGHT);
     shaderManager.renderToBuffer("initVel", [], "velocity");
 }
@@ -135,12 +144,15 @@ function Render()
         shaderManager.setUniformForProgram("boundary", "u_scale", -1.0, "1f");
         shaderManager.renderToBuffer("boundary", ["nextVelocity"], "velocity");
 
-        // add color src
-        gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
-        shaderManager.setUniformForProgram("addColor", "u_mouseLoc", mouseCoordinates, "2f");
-        shaderManager.setUniformForProgram("addColor", "u_r", 0.0002, "1f");
-        shaderManager.renderToBuffer("addColor", ["color", "tmpColor"], "nextColor");
-        shaderManager.swapBuffer("color", "nextColor");
+        if (addColorEnable == true)
+        {
+            // add color src
+            gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+            shaderManager.setUniformForProgram("addColor", "u_mouseLoc", mouseCoordinates, "2f");
+            shaderManager.setUniformForProgram("addColor", "u_r", 0.0002, "1f");
+            shaderManager.renderToBuffer("addColor", ["color", "tmpColor"], "nextColor");
+            shaderManager.swapBuffer("color", "nextColor");
+        }
     }
 
     gl.viewport(0, 0, WIDTH, HEIGHT);

@@ -30,7 +30,7 @@ void main()
 	// vec3 heartshape = vec3(smoothstep(ff,ff+0.02,r));
     color = mix(color1,color2,fract(f*25.0));
     // color = mix(color,color3, heartshape);
-    color = color1;
+//    color = color1;
 
     gl_FragColor = vec4(color, 1.0);
 }

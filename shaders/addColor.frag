@@ -24,7 +24,7 @@ void main()
 //    fac = (fac > 0.3) ? fac : 0.0;
 
     // add color
-    vec3 color = oldcolor.xyz * (1.0 - fac) + newcolor.xyz * fac;
+    vec3 color = oldcolor.xyz + newcolor.xyz * fac;
 //    vec3 color = oldcolor.xyz;
     gl_FragColor = vec4(color, 1.0);
 }

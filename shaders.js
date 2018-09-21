@@ -20,6 +20,11 @@ var shaders = [
     "render"
 ];
 
+var texs = [
+    "bird",
+    "egg"
+];
+
 
 var global_vert_shader = "global.vert";
 
@@ -85,9 +90,11 @@ function LoadShaderSourceFromFile(shaderName, filenameVertexShader, filenameFrag
 function LoadImages()
 {
     console.log("Load textures...");
-    var texturefile = "resources/panda.png";
-    // load textures
-    LoadImageFromFile("initColor", texturefile);
+    for (i in texs)
+    {
+        var texturefile = "resources" + "/" + texs[i] + ".png";
+        LoadImageFromFile(texs[i], texturefile);
+    }
 }
 
 function LoadImageFromFile(name, image_src)
