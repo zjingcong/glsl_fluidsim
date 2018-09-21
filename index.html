@@ -19,8 +19,14 @@
             if (!gl)
                 console.log('Failed to set up WebGL.');
             else
-                console.log("Loading shader resources...");
-                LoadShaderSource();
+                console.log("Loading texture resources...");
+                LoadImages();
+        };
+
+        window.WebGLImageLoaded = function()
+        {
+            console.log("Loading shader resources...");
+            LoadShaderSource();
         };
 
         window.webGLResourcesLoaded = function()
@@ -36,7 +42,6 @@
                 }
             );
         }
-
 
     </script>
 </head>

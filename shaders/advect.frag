@@ -1,23 +1,23 @@
 precision mediump float;
 
 uniform sampler2D u_velocity;
-uniform sampler2D u_color;
+uniform sampler2D u_mat;
 
 uniform vec2 u_resolution;
 uniform float u_dt;
 
-//vec2 boundary(vec2 poss)
-//{
-//    vec2 new_pos;
-//    vec2 pixel = vec2(0.5);
-//    vec2 pos = floor(poss - pixel);
-//    new_pos.x = abs(pos.x);
-//    new_pos.y = abs(pos.y);
-//    new_pos.x = u_resolution.x - abs(u_resolution.x - pos.x);
-//    new_pos.y = u_resolution.y - abs(u_resolution.y - pos.y);
-//    new_pos += pixel;
-//    return poss;
-//}
+vec2 boundary(vec2 poss)
+{
+    vec2 new_pos;
+    vec2 pixel = vec2(0.5);
+    vec2 pos = floor(poss - pixel);
+    new_pos.x = abs(pos.x);
+    new_pos.y = abs(pos.y);
+    new_pos.x = u_resolution.x - abs(u_resolution.x - pos.x);
+    new_pos.y = u_resolution.y - abs(u_resolution.y - pos.y);
+    new_pos += pixel;
+    return poss;
+}
 
 vec4 bilinear(sampler2D mat, vec2 pos, vec2 resolution)
 {
@@ -43,8 +43,15 @@ void main()
     vec2 fragCoord = gl_FragCoord.xy;
     vec2 velocity = bilinear(u_velocity, fragCoord, u_resolution).xy;
 
+    if (length(velocity) <= 0.0)
+    {
+        gl_FragColor = texture2D(u_mat, fragCoord/u_resolution);
+        return;
+    }
+
     vec2 pos = fragCoord - velocity * u_dt;
-    vec4 color = bilinear(u_color, pos, u_resolution);
+    pos = boundary(pos);
+    vec4 color = bilinear(u_mat, pos, u_resolution);
 
     gl_FragColor = color;
 }

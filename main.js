@@ -2,19 +2,22 @@
 var shaderManager;
 var RENDER_WIDTH;
 var RENDER_HEIGHT;
-var WIDTH = 400;
-var HEIGHT = 400;
+var WIDTH = 450;
+var HEIGHT = 450;
 
-var dx = 2.2;
-var dy = 2.2;
-var dt = 1.0;
-var jacobi_iter = 6;
-
+var dx = 1.2;
+var dy = 1.2;
+var dt = 2.2;
+var jacobi_iter = 8;
 
 function InitShaderPrograms()
 {
     shaderManager = ShaderManager();
 
+    // flip color
+    shaderManager.loadShaderFromSource(gl, "flip");
+    shaderManager.setUniformForProgram("flip", "u_color", 0, "1i");
+    shaderManager.setUniformForProgram("flip", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
     // base color
     shaderManager.loadShaderFromSource(gl, "baseColor");
     shaderManager.setUniformForProgram("baseColor", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
@@ -24,18 +27,17 @@ function InitShaderPrograms()
     shaderManager.loadShaderFromSource(gl, "boundary");
     shaderManager.setUniformForProgram("boundary", "u_resolution", [WIDTH, HEIGHT], "2f");
     shaderManager.setUniformForProgram("boundary", "u_mat", 0, "1i");
-    // advect color
-    shaderManager.loadShaderFromSource(gl, "advectColor");
-    shaderManager.setUniformForProgram("advectColor", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
-    shaderManager.setUniformForProgram("advectColor", "u_velocity", 0, "1i");
-    shaderManager.setUniformForProgram("advectColor", "u_color", 1, "1i");
-    shaderManager.setUniformForProgram("advectColor", "u_dt", dt, "1f");
-    // advect velocity
-    shaderManager.loadShaderFromSource(gl, "advectVelocity");
-    shaderManager.setUniformForProgram("advectVelocity", "u_resolution", [WIDTH, HEIGHT], "2f");
-    shaderManager.setUniformForProgram("advectVelocity", "u_velocity", 0, "1i");
-    // shaderManager.setUniformForProgram("advectVelocity", "u_material", 1, "1i");
-    shaderManager.setUniformForProgram("advectVelocity", "u_dt", dt, "1f");
+    // advect
+    shaderManager.loadShaderFromSource(gl, "advect");
+    shaderManager.setUniformForProgram("advect", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
+    shaderManager.setUniformForProgram("advect", "u_velocity", 0, "1i");
+    shaderManager.setUniformForProgram("advect", "u_mat", 1, "1i");
+    shaderManager.setUniformForProgram("advect", "u_dt", dt, "1f");
+    // // advect velocity
+    // shaderManager.loadShaderFromSource(gl, "advectVelocity");
+    // shaderManager.setUniformForProgram("advectVelocity", "u_resolution", [WIDTH, HEIGHT], "2f");
+    // shaderManager.setUniformForProgram("advectVelocity", "u_velocity", 0, "1i");
+    // shaderManager.setUniformForProgram("advectVelocity", "u_dt", dt, "1f");
     // add force
     shaderManager.loadShaderFromSource(gl, "addForce");
     shaderManager.setUniformForProgram("addForce", "u_resolution", [WIDTH, HEIGHT], "2f");
@@ -57,7 +59,7 @@ function InitShaderPrograms()
     shaderManager.setUniformForProgram("jacobi", "u_pressure", 0, "1i");
     shaderManager.setUniformForProgram("jacobi", "u_divergence", 1, "1i");
     /// notes: in Poisson-pressure equation, alpha=-dt*dt, beta=4 (different from viscous diffusion equation)
-    shaderManager.setUniformForProgram("jacobi", "u_alpha", -dt * dt, "1f");
+    shaderManager.setUniformForProgram("jacobi", "u_alpha", -dt*dt, "1f");
     shaderManager.setUniformForProgram("jacobi", "u_beta", 4.0, "1f");
     // calculate new velocity from pressure field
     shaderManager.loadShaderFromSource(gl, "velFromPressure");
@@ -89,15 +91,17 @@ function InitShaderPrograms()
     shaderManager.initFrameBufferForTexture("pressure", true);
     shaderManager.initTextureFromData("nextPressure", WIDTH, HEIGHT, "HALF_FLOAT", new Uint16Array(WIDTH*HEIGHT*4), true);
     shaderManager.initFrameBufferForTexture("nextPressure", true);
+
+    // create textures
+    shaderManager.initTextureFromImage("initColor");
 }
 
 function InitSim()
 {
-    gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
-
-    shaderManager.renderToBuffer("render", ["test"]);
     console.log("Init Simulation");
-    shaderManager.renderToBuffer("baseColor", [], "color");
+    gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+    shaderManager.renderToBuffer("flip", ["initColor"], "color");
+    // shaderManager.renderToBuffer("baseColor", [], "color");
     gl.viewport(0, 0, WIDTH, HEIGHT);
     shaderManager.renderToBuffer("initVel", [], "velocity");
 }
@@ -106,7 +110,8 @@ function Render()
 {
     gl.viewport(0, 0, WIDTH, HEIGHT);
     // advect velocity
-    shaderManager.renderToBuffer("advectVelocity", ["velocity"], "nextVelocity");
+    shaderManager.setUniformForProgram("advect", "u_resolution", [WIDTH, HEIGHT], "2f");
+    shaderManager.renderToBuffer("advect", ["velocity", "velocity"], "nextVelocity");
     // solve velocity boundary
     shaderManager.setUniformForProgram("boundary", "u_scale", -1.0, "1f");
     shaderManager.renderToBuffer("boundary", ["nextVelocity"], "velocity");
@@ -140,11 +145,11 @@ function Render()
     // solve velocity boundary
     shaderManager.setUniformForProgram("boundary", "u_scale", -1.0, "1f");
     shaderManager.renderToBuffer("boundary", ["nextVelocity"], "velocity");
-    // shaderManager.swapBuffer("velocity", "nextVelocity");
 
     // advect color
     gl.viewport(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
-    shaderManager.renderToBuffer("advectColor", ["nextVelocity", "color"], "nextColor");
+    shaderManager.setUniformForProgram("advect", "u_resolution", [RENDER_WIDTH, RENDER_HEIGHT], "2f");
+    shaderManager.renderToBuffer("advect", ["velocity", "color"], "nextColor");
     shaderManager.swapBuffer("color", "nextColor");
     shaderManager.renderToBuffer("render", ["color"]);
 }

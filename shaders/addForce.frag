@@ -16,13 +16,15 @@ void main()
     vec2 v = texture2D(u_velocity, fragCoord/u_resolution).xy;
 
     // calculate force based on mouse motion
-    vec2 F = u_mouseDir/200.0;
+    vec2 F = u_mouseDir/600.0;
 
     // calculate impulse area
     vec2 x = fragCoord/u_resolution; // normalized fragment position
     vec2 xp = u_mouseLoc/u_resolution_render;    // normalized impulse position
     float r = u_r;
     float fac = exp(-pow(length(x - xp), 2.0) / r);
+
+    fac = (fac > 0.3) ? fac : 0.0;
 
     // add velocity
     vec2 c = F * u_dt * fac;

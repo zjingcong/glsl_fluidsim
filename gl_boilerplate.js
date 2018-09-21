@@ -1,4 +1,4 @@
-//from http://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
+//From: http://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
 
 function initBoilerPlate(){
 

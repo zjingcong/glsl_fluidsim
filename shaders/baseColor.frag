@@ -7,8 +7,8 @@ uniform vec2 u_resolution;
 //vec3 color2 = vec3(0.1, 0.621, 1.0);
 //vec3 color3 = vec3(1.000,0.878,0.758);
 
-vec3 color1 = vec3(2.0, 0.0, 0.0);
-vec3 color2 = vec3(0.0, 2.0, 0.0);
+vec3 color1 = vec3(2.0, 2.0, 0.0);
+vec3 color2 = vec3(0.0, 2.0, 2.0);
 
 float heart(float d, float a)
 {

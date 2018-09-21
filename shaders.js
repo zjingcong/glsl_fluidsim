@@ -1,5 +1,5 @@
 /*
-From:
+Reference:
     http://www.webgltutorials.org
     https://github.com/amandaghassaei/VortexShedding
 */
@@ -15,21 +15,22 @@ var shaders = [
     "divergence",
     "jacobi",
     "velFromPressure",
-    "advectColor",
+    "advect",
     "render"
 ];
 
-// this is a test mesg
 
 var global_vert_shader = "global.vert";
 
 var fs_list = {};
 var vs_list = {};
+var img_list = {};
 
-function LoadShaderSource() {
+function LoadShaderSource()
+{
     for (i in shaders)
     {
-        console.log("Load shader " + i + ": " + shaders[i]);
+        console.log("Load shader " + i + ": " + shaders[i] + "...");
         LoadShaderSourceFromFile(shaders[i], global_vert_shader, shaders[i] + ".frag", i);
     }
 }
@@ -78,6 +79,28 @@ function LoadShaderSourceFromFile(shaderName, filenameVertexShader, filenameFrag
     };
     xmlhttp.open("GET", filename_vs, true);
     xmlhttp.send();
+}
+
+function LoadImages()
+{
+    console.log("Load textures...");
+    var texturefile = "resources/egg.png";
+    // load textures
+    LoadImageFromFile("initColor", texturefile);
+}
+
+function LoadImageFromFile(name, image_src)
+{
+    var image = new Image();
+    image.src = image_src;
+    image.addEventListener("load", function() {
+        var w = image.width;
+        var h = image.height;
+        console.log("Texture Image Width: " + w);
+        console.log("Texture Image Height: " + h);
+        img_list[name] = image;
+        window.WebGLImageLoaded();
+    })
 }
 
 
@@ -153,44 +176,37 @@ function ShaderManager() {
         this.textures[name] = texture;
     };
 
-    Shader.prototype.initTextureFromImage = function(gl, name)
+    Shader.prototype.initTextureFromImage = function(name)
     {
         var texture = this.textures[name];
         if (texture) {
             console.warn("Already a texture with the name " + name);
             return;
         }
+
+        var image = img_list[name];
+        if (!image)
+        {
+            console.warn("No image named " + name);
+            return;
+        }
+
         texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        // Fill the texture with a 1x1 blue pixel.
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-            new Uint8Array([0, 0, 255, 255]));
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-        var image = new Image();
-        image.src = "resources/test3.png";
-        image.addEventListener("load", function(){
-            console.log("Load resources success.");
-            // Now that the image has loaded make copy it to the texture.
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            // Yes, it's a power of 2. Generate mips.
+            gl.generateMipmap(gl.TEXTURE_2D);
+        }
+        else {
+            // No, it's not a power of 2. Turn of mips and set
+            // wrapping to clamp to edge
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
 
-            var w = image.width;
-            var h = image.height;
-            console.log("Texture Image Width: " + w);
-            console.log("Texture Image Height: " + h);
-
-            if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-                // Yes, it's a power of 2. Generate mips.
-                gl.generateMipmap(gl.TEXTURE_2D);
-            }
-            else {
-                // No, it's not a power of 2. Turn of mips and set
-                // wrapping to clamp to edge
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            }
-        });
         this.textures[name] = texture;
     };
 
